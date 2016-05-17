@@ -43,3 +43,8 @@ write_files:
     owner: "root"
     content: |
       umask 027
+  - path: "/etc/profile.d/tmout.sh"
+    permissions: "0744"
+    owner: "root"
+    content: |
+      export TMOUT=300
