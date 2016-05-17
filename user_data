@@ -31,9 +31,15 @@ coreos:
 
         [Install]
         WantedBy=sockets.target
+
 write_files:
   - path: "/etc/issue"
     permissions: "0644"
     owner: "root"
     content: |
       This system is the property of its owner and is intended for authorized users only.  Unauthorized used of this system is prohibited.
+  - path: "/etc/profile.d/umask.sh"
+    permissions: "0744"
+    owner: "root"
+    content: |
+      umask 027
