@@ -28,21 +28,10 @@ Vagrant.configure(2) do |config|
     mkdir -p /var/www/default/html
     chmod -R 755 /var/www
     mv /vagrant/index.html /var/www/default/html
+
+    fleetctl start /opt/fleet/registrator.service
+    fleetctl start /opt/fleet/haproxy-confd.service
+    fleetctl start /opt/fleet/nginx.service
   SHELL
 
-#  config.vm.provision :docker do |d|
-#    d.run "registrator",
-#      image: "gliderlabs/registrator",
-#      args: "--net host -v /var/run/docker.sock:/tmp/docker.sock",
-#      cmd: "-internal=true etcd://localhost:2379/haproxy-discover/services",
-#      restart: "always"
-#    d.run "haproxy-confd",
-#      image: "treehau5/haproxy-confd",
-#      args: "--net host -v /var/confd:/etc/confd -e 'ETCD_ADDR=localhost:2379' -p 80:80",
-#      restart: "always"
-#    d.run "www_1",
-#      image: "nginx",
-#      args: "--link haproxy-confd -v /var/www/default/html:/usr/share/nginx/html",
-#      restart: "always"
-#  end
 end
