@@ -20,6 +20,7 @@ coreos:
   units:
     - name: etcd2.service
       command: start
+      enable: true
     - name: docker.service
       command: start
       enable: true
@@ -39,6 +40,7 @@ coreos:
         WantedBy=sockets.target
     - name: fleet.service
       command: start
+      enable: true
     - name: registrator.service
       command: start
       content: |
@@ -77,6 +79,7 @@ coreos:
         [Unit]
         Description=NGINX Web Server
         After=docker.service
+        Requires=docker.service
         After=registrator.service
         After=haproxy-confd.service
         Requires=haproxy-confd.service
@@ -94,7 +97,8 @@ write_files:
     permissions: "0644"
     owner: "root"
     content: |
-      This system is the property of its owner and is intended for authorized users only.  Unauthorized used of this system is prohibited.
+      This system is the property of its owner and is intended for authorized users only.  
+      Unauthorized used of this system is prohibited.
   - path: "/etc/profile.d/umask.sh"
     permissions: "0744"
     owner: "root"
