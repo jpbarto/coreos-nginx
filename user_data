@@ -1,8 +1,10 @@
 #cloud-config
 
 coreos:
+
   update:
     reboot-strategy: "best-effort"
+
   etcd2:
     # multi-region and multi-cloud deployments need to use $public_ipv4
     # initial-advertise-peer-urls: http://$private_ipv4:2380
@@ -14,9 +16,13 @@ coreos:
     # initial_cluster_state: new
     # initial_cluster: default=http://$private_ipv4:2380
     force_new_cluster: true
+
   units:
     - name: etcd2.service
       command: start
+    - name: docker.service
+      command: start
+      enable: true
     - name: docker-tcp.socket
       command: start
       enable: true
@@ -31,6 +37,57 @@ coreos:
 
         [Install]
         WantedBy=sockets.target
+    - name: fleet.service
+      command: start
+    - name: registrator.service
+      command: start
+      content: |
+        [Unit]
+        Description=Container registrator
+        After=docker.service
+        Requires=docker.service
+
+        [Service]
+        Restart=always
+        ExecStartPre=-/usr/bin/docker kill registrator
+        ExecStartPre=-/usr/bin/docker rm registrator
+        ExecStartPre=/usr/bin/docker pull gliderlabs/registrator
+        ExecStart=/usr/bin/docker run --name registrator --net host -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator -internal=true etcd://localhost:2379/haproxy-discover/services
+        ExecStop=/usr/bin/docker stop registrator
+    - name: haproxy-confd.service
+      command: start
+      content: |
+        [Unit]
+        Description=ConfD configured HAProxy
+        After=docker.service
+        Requires=docker.service
+        After=registrator.service
+        Requires=registrator.service
+
+        [Service]
+        Restart=always
+        ExecStartPre=-/usr/bin/docker kill haproxy-confd
+        ExecStartPre=-/usr/bin/docker rm haproxy-confd
+        ExecStartPre=/usr/bin/docker pull treehau5/haproxy-confd
+        ExecStart=/usr/bin/docker run --name haproxy-confd --net host -v /var/confd:/etc/confd -e 'ETCD_ADDR=localhost:2379' -p 80:80 treehau5/haproxy-confd
+        ExecStop=/usr/bin/docker stop haproxy-confd
+    - name: nginx.service
+      command: start
+      content: |
+        [Unit]
+        Description=NGINX Web Server
+        After=docker.service
+        After=registrator.service
+        After=haproxy-confd.service
+        Requires=haproxy-confd.service
+
+        [Service]
+        Restart=always
+        ExecStartPre=-/usr/bin/docker kill www_1
+        ExecStartPre=-/usr/bin/docker rm www_1
+        ExecStartPre=/usr/bin/docker pull nginx
+        ExecStart=/usr/bin/docker run --name www_1 -v /var/www/default/html:/usr/share/nginx/html nginx
+        ExecStop=/usr/bin/docker stop www_1
 
 write_files:
   - path: "/etc/issue"
