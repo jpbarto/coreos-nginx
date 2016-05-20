@@ -6,16 +6,24 @@ coreos:
     reboot-strategy: "best-effort"
 
   etcd2:
+    name: default
     # multi-region and multi-cloud deployments need to use $public_ipv4
     # initial-advertise-peer-urls: http://$private_ipv4:2380
+    initial-advertise-peer-urls: http://127.0.0.1:2380
     # listen-peer-urls: http://$private_ipv4:2380,http://$private_ipv4:7001
+    listen-peer-urls: http://127.0.0.1:2380
     # listen on both the official ports and the legacy ports
     # legacy ports can be omitted if your application doesn't depend on them
     # listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
+    listen-client-urls: http://127.0.0.1:2379
     # advertise-client-urls: http://$private_ipv4:2379,http://$private_ipv4:4001
+    advertise-client-urls: http://127.0.0.1:2379
     # initial_cluster_state: new
+    initial-cluster-state: new
     # initial_cluster: default=http://$private_ipv4:2380
-    force_new_cluster: true
+    initial-cluster: default=http://127.0.0.1:2380
+    initial-cluster-token: simplesimon
+    force-new-cluster: true
 
   units:
     - name: etcd2.service
@@ -24,6 +32,11 @@ coreos:
     - name: docker.service
       command: start
       enable: true
+      drop-ins:
+        - name: "docker-daemon-security.conf"
+          content: |
+            [Service]
+            Environment="DOCKER_OPTS=--disable-legacy-registry --icc=false"
     - name: docker-tcp.socket
       command: start
       enable: true
@@ -49,8 +62,8 @@ write_files:
     content: |
       [Unit]
       Description=Container registrator
-      After=docker.service
-      Requires=docker.service
+      After=docker.service etcd2.service
+      Requires=docker.service etcd2.service
 
       [Service]
       Restart=always
@@ -66,10 +79,8 @@ write_files:
     content: |
       [Unit]
       Description=ConfD configured HAProxy
-      After=docker.service
-      Requires=docker.service
-      After=registrator.service
-      Requires=registrator.service
+      After=docker.service registrator.service etcd2.service
+      Requires=docker.service registrator.service etcd2.service
 
       [Service]
       Restart=always
@@ -85,18 +96,15 @@ write_files:
     content: |
       [Unit]
       Description=NGINX Web Server
-      After=docker.service
-      Requires=docker.service
-      After=registrator.service
-      After=haproxy-confd.service
-      Requires=haproxy-confd.service
+      After=docker.service registrator.service
+      Requires=docker.service registrator.service
 
       [Service]
       Restart=always
       ExecStartPre=-/usr/bin/docker kill www_1
       ExecStartPre=-/usr/bin/docker rm www_1
       ExecStartPre=/usr/bin/docker pull nginx
-      ExecStart=/usr/bin/docker run --name www_1 -v /var/www/default/html:/usr/share/nginx/html nginx
+      ExecStart=/usr/bin/docker run --name www_1 -v /var/www/default/html:/usr/share/nginx/html:ro nginx
       ExecStop=/usr/bin/docker stop www_1
 
   - path: "/etc/issue"
@@ -115,3 +123,11 @@ write_files:
     owner: "root"
     content: |
       export TMOUT=300
+  - path: "/etc/systemd/system/fleet.socket.d/10-root-only.conf"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      [Socket]
+      SocketMode=0600
+      SocketUser=root
+      SocketGroup=root

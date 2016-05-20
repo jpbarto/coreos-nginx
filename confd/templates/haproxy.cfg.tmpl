@@ -22,7 +22,7 @@ defaults
     option http-server-close
 
 frontend stats
-    bind *:8888
+    bind 127.0.0.1:8888
     stats enable
     stats uri /
 

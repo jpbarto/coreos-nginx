@@ -26,8 +26,12 @@ Vagrant.configure(2) do |config|
     mv /vagrant/confd /var/confd
     chmod -R 644 /var/confd
     mkdir -p /var/www/default/html
+    chown -R core:core /var/www
     chmod -R 755 /var/www
     mv /vagrant/index.html /var/www/default/html
+
+    # hardening measures
+    gpasswd -d core rkt
 
     fleetctl start /opt/fleet/registrator.service
     fleetctl start /opt/fleet/haproxy-confd.service
