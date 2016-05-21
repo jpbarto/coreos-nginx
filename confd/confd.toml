@@ -2,7 +2,7 @@ confdir = "/etc/confd"
 interval = 20
 backend = "etcd"
 nodes = [
-        "http://172.18.0.1:4001"
+        "http://localhost:2379"
 ]
 prefix = "/"
 scheme = "http"

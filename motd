@@ -1,0 +1,29 @@
+======================================================================
+==  Web Server                                                      ==
+======================================================================
+
+Site Files and Configuration:
+-----------------------------
+
+To configure a website using this image place all HTML files in:
+
+  /var/www/html
+
+Any error pages (404.html, 502.html, etc) can be placed into:
+ 
+  /var/www/error/html
+
+To deploy a secured HTTPS site place key files and certificates into:
+
+  /var/www/ssl
+
+All of the aforementioned files can then be referenced and configured 
+by modifying the NGINX server configuration file located at:
+
+  /var/www/default.conf
+
+For additional information or any questions please see:
+ - http://nginx.org/en/docs/
+ - https://github.com/jpbarto
+
+EOL

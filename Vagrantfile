@@ -38,8 +38,8 @@ Vagrant.configure(2) do |config|
     chmod -R 644 /var/confd
 
     # configure html dir for nginx www server
-    mkdir -p /var/www/default/html
-    tar -C /var/www/default -xzf /vagrant/sa-project.tgz
+    mkdir -p /var/www
+    mv /vagrant/www/* /var/www
     chown -R core:core /var/www
     chmod -R 755 /var/www
 

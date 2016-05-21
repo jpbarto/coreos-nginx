@@ -2,6 +2,7 @@
 src = "haproxy.cfg.tmpl"
 dest = "/etc/haproxy/haproxy.cfg"
 keys = [
-        "/haproxy-discover/services/nginx-80"
+        "/haproxy-discover/services/nginx-80",
+        "/haproxy-discover/services/nginx-443"
 ]
 reload_cmd = "echo restarting && /etc/init.d/haproxy restart"

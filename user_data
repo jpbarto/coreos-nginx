@@ -104,7 +104,7 @@ write_files:
       ExecStartPre=-/usr/bin/docker kill www_1
       ExecStartPre=-/usr/bin/docker rm www_1
       ExecStartPre=/usr/bin/docker pull nginx
-      ExecStart=/usr/bin/docker run --name www_1 --memory 256m --cpu-shares 1000 -v /var/www/default/html:/usr/share/nginx/html:ro nginx
+      ExecStart=/usr/bin/docker run --name www_1 --memory 256m --cpu-shares 1000 -v /var/www/default.conf:/etc/nginx/conf.d/default.conf:ro -v /var/www/ssl:/var/www/ssl:ro -v /var/www/error:/var/www/error:ro -v /var/www/html:/var/www/html:ro nginx
       ExecStop=/usr/bin/docker stop www_1
 
   - path: "/etc/issue"

@@ -30,12 +30,26 @@ frontend http-in
     bind *:80
     default_backend application-backend
 
+frontend https-in
+    bind *:443
+    option tcplog
+    mode tcp
+    default_backend application-backend-ssl
+
 backend application-backend
     balance leastconn
     option httpclose
     option forwardfor
-    cookie JSESSIONID prefix
 
     {{range gets "/haproxy-discover/services/nginx-80/*"}}
+    server {{base .Key}} {{.Value}} check
+    {{end}}
+
+backend application-backend-ssl
+    mode tcp
+    balance leastconn
+    option ssl-hello-chk
+
+    {{range gets "/haproxy-discover/services/nginx-443/*"}}
     server {{base .Key}} {{.Value}} check
     {{end}}
