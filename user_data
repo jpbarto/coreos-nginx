@@ -70,7 +70,7 @@ write_files:
       ExecStartPre=-/usr/bin/docker kill registrator
       ExecStartPre=-/usr/bin/docker rm registrator
       ExecStartPre=/usr/bin/docker pull gliderlabs/registrator
-      ExecStart=/usr/bin/docker run --name registrator --net host -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator -internal=true etcd://localhost:2379/haproxy-discover/services
+      ExecStart=/usr/bin/docker run --name registrator --net host --memory 64m --cpu-shares 500 -v /var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator -internal=true etcd://localhost:2379/haproxy-discover/services
       ExecStop=/usr/bin/docker stop registrator
 
   - path: "/opt/fleet/haproxy-confd.service"
@@ -87,7 +87,7 @@ write_files:
       ExecStartPre=-/usr/bin/docker kill haproxy-confd
       ExecStartPre=-/usr/bin/docker rm haproxy-confd
       ExecStartPre=/usr/bin/docker pull treehau5/haproxy-confd
-      ExecStart=/usr/bin/docker run --name haproxy-confd --net host -v /var/confd:/etc/confd -e 'ETCD_ADDR=localhost:2379' -p 80:80 treehau5/haproxy-confd
+      ExecStart=/usr/bin/docker run --name haproxy-confd --net host --memory 128m --cpu-shares 500 -v /var/confd:/etc/confd -e 'ETCD_ADDR=localhost:2379' -p 80:80 treehau5/haproxy-confd
       ExecStop=/usr/bin/docker stop haproxy-confd
 
   - path: "/opt/fleet/nginx.service"
@@ -104,7 +104,7 @@ write_files:
       ExecStartPre=-/usr/bin/docker kill www_1
       ExecStartPre=-/usr/bin/docker rm www_1
       ExecStartPre=/usr/bin/docker pull nginx
-      ExecStart=/usr/bin/docker run --name www_1 -v /var/www/default/html:/usr/share/nginx/html:ro nginx
+      ExecStart=/usr/bin/docker run --name www_1 --memory 256m --cpu-shares 1000 -v /var/www/default/html:/usr/share/nginx/html:ro nginx
       ExecStop=/usr/bin/docker stop www_1
 
   - path: "/etc/issue"
@@ -123,6 +123,16 @@ write_files:
     owner: "root"
     content: |
       export TMOUT=300
+  - path: "/etc/subuid"
+    permissions: "0664"
+    owner: "root"
+    content: |
+      dockremap:100000:65536
+  - path: "/etc/subgid"
+    permissions: "0664"
+    owner: "root:docker"
+    content: |
+      dockremap:100000:65536
   - path: "/etc/systemd/system/fleet.socket.d/10-root-only.conf"
     permissions: "0644"
     owner: "root"

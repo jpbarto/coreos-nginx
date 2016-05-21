@@ -23,16 +23,30 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.provision :shell, inline: <<-SHELL
+    # configure motd
+    mv /vagrant/motd /etc/motd
+    chown root:root /etc/motd
+    chmod 644 /etc/motd
+
+    # configure login.defs
+    mv /vagrant/login.defs /etc/login.defs
+    chown root:root /etc/login.defs
+    chmod 640 /etc/login.defs
+
+    # configure confd for haproxy-confd container
     mv /vagrant/confd /var/confd
     chmod -R 644 /var/confd
+
+    # configure html dir for nginx www server
     mkdir -p /var/www/default/html
+    tar -C /var/www/default -xzf /vagrant/sa-project.tgz
     chown -R core:core /var/www
     chmod -R 755 /var/www
-    mv /vagrant/index.html /var/www/default/html
 
-    # hardening measures
+    # hardening measures, remove coreos user from rkt group
     gpasswd -d core rkt
 
+    # schedule www container and reverse proxy / load balancer for startup
     fleetctl start /opt/fleet/registrator.service
     fleetctl start /opt/fleet/haproxy-confd.service
     fleetctl start /opt/fleet/nginx.service
