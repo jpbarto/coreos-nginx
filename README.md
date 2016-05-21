@@ -10,3 +10,5 @@ NGINX-powered webserver running on Docker and CoreOS
 
  - https://github.com/docker/docker-bench-security
  - https://coreos.com/os/docs/latest/coreos-hardening-guide.html
+
+ - http://www.cyberciti.biz/tips/howto-performance-benchmarks-a-web-server.html
