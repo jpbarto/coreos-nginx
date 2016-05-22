@@ -123,6 +123,16 @@ write_files:
     owner: "root"
     content: |
       export TMOUT=300
+  - path: "/etc/ssh/sshd_config"
+    permission: "0600"
+    owner: "root:root"
+    content: |
+      # Use most defaults for sshd configuration.
+      UsePrivilegeSeparation sandbox
+      Subsystem sftp internal-sftp
+      ClientAliveInterval 180
+      PasswordAuthentication no
+      UseDNS no
   - path: "/etc/subuid"
     permissions: "0664"
     owner: "root"
